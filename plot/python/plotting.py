@@ -435,7 +435,8 @@ def draw(plot, \
             h.Draw(drawOption+same)
             same = "same"
 
-    topPad.RedrawAxis()
+    if not drawOption == 'AH':
+        topPad.RedrawAxis()
     # Make the legend
     if legend is not None:
         legend_ = ROOT.TLegend(*legendCoordinates)
