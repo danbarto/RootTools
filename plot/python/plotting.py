@@ -475,7 +475,10 @@ def draw(plot, \
     for o in drawObjects:
         if o:
             if type(o) in [ ROOT.TF1, ROOT.TGraph, ROOT.TEfficiency, ROOT.TH1F ]:
-                o.Draw('same '+o.drawOption)
+                if hasattr(o, 'drawOption'):
+                    o.Draw('same '+o.drawOption)
+                else:
+                    o.Draw('same')
             else:
                 o.Draw()
         else:
