@@ -474,8 +474,8 @@ def draw(plot, \
 
     for o in drawObjects:
         if o:
-            if type(o) in [ ROOT.TF1, ROOT.TGraph, ROOT.TEfficiency ]:
-                o.Draw('same')
+            if type(o) in [ ROOT.TF1, ROOT.TGraph, ROOT.TEfficiency, ROOT.TH1F ]:
+                o.Draw('same '+o.drawOption)
             else:
                 o.Draw()
         else:
@@ -540,6 +540,7 @@ def draw(plot, \
                 graph.SetPointError(bin, 0, 0, errDown, errUp)
               h_ratio.Draw("e0"+same)
               graph.Draw("P0 same")
+              graph.drawOption = "P0"
               stuff.append( graph )
             else:
               h_ratio.Draw(drawOption+same)
@@ -556,9 +557,16 @@ def draw(plot, \
 
         for o in ratio['drawObjects']:
             if o:
-                o.Draw()
+                if hasattr(o, 'drawOption'):
+                    o.Draw(o.drawOption)
+                else:
+                    o.Draw()
             else:
                 logger.debug( "ratio['drawObjects'] has something I can't Draw(): %r", o)
+        # re-draw the main objects (ratio histograms) after the objects, otherwise they might be hidden
+        for h_ratio in stuff:
+            drawOption = h_ratio.drawOption if hasattr(h_ratio, "drawOption") else "hist"
+            h_ratio.Draw(drawOption+same)
 
     if not os.path.exists(plot_directory):
         try:
