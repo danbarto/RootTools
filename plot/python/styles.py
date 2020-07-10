@@ -1,6 +1,6 @@
 import ROOT
 
-def errorStyle( color, markerStyle = 20, markerSize = 1, width = 1):
+def errorStyle( color, markerStyle = 20, markerSize = 1, width = 1, drawOption='e1'):
     def func( histo ):
         histo.SetLineColor( color )
         histo.SetMarkerSize( markerSize )
@@ -8,7 +8,7 @@ def errorStyle( color, markerStyle = 20, markerSize = 1, width = 1):
         histo.SetMarkerColor( color )
 #        histo.SetFillColor( color )
         histo.SetLineWidth( width )
-        histo.drawOption = "e1"
+        histo.drawOption = drawOption
         return 
     return func
 

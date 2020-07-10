@@ -413,6 +413,7 @@ def draw(plot, \
 
     # Draw the histos
     same = ""
+    stuff = []
     for i, l in enumerate(histos):
         for j, h in enumerate(l):
             # Get draw option. Neither Clone nor copy preserves attributes of histo
@@ -438,7 +439,7 @@ def draw(plot, \
                 h.GetYaxis().SetTitleOffset( 1.6 )
 
             for modification in histModifications: modification(h)
-            #if drawOption=="e1": dataHist = h
+            if drawOption=="e1" or drawOption=="e0": stuff.append(h)#dataHist = h
             h.Draw(drawOption+same)
             same = "same"
 
@@ -474,7 +475,7 @@ def draw(plot, \
 
     for o in drawObjects:
         if o:
-            if type(o) in [ ROOT.TF1, ROOT.TGraph, ROOT.TEfficiency, ROOT.TH1F ]:
+            if type(o) in [ ROOT.TF1, ROOT.TGraph, ROOT.TEfficiency, ROOT.TH1F, ROOT.TH1D ]:
                 if hasattr(o, 'drawOption'):
                     o.Draw('same '+o.drawOption)
                 else:
@@ -483,6 +484,12 @@ def draw(plot, \
                 o.Draw()
         else:
             logger.debug( "drawObjects has something I can't Draw(): %r", o)
+
+    # re-draw the main objects (ratio histograms) after the objects, otherwise they might be hidden
+    for h_main in stuff:
+        drawOption = h_main.drawOption if hasattr(h_main, "drawOption") else "hist"
+        h_main.Draw(drawOption+same)
+
     # Make a ratio plot
     if ratio is not None:
         bottomPad.cd()
@@ -530,15 +537,15 @@ def draw(plot, \
             if ratio.has_key('histModifications'):
                 for modification in ratio['histModifications']: modification(h_ratio)
             drawOption = h_ratio.drawOption if hasattr(h_ratio, "drawOption") else "hist"
-            if drawOption == "e1":                          # hacking to show error bars within panel when central value is off scale
+            if drawOption == "e1" or drawOption == "e0":                          # hacking to show error bars within panel when central value is off scale
               graph = ROOT.TGraphAsymmErrors(h_ratio)       # cloning in order to get layout
               graph.Set(0)
               for bin in range(1, h_ratio.GetNbinsX()+1):   # do not show error bars on hist
                 h_ratio.SetBinError(bin, 0.0001)
                 center  = h_ratio.GetBinCenter(bin)
                 val     = h_ratio.GetBinContent(bin)
-                errUp   = num.GetBinErrorUp(bin)/den.GetBinContent(bin) if val > 0 else 0
-                errDown = num.GetBinErrorLow(bin)/den.GetBinContent(bin) if val > 0 else 0
+                errUp   = num.GetBinErrorUp(bin)/den.GetBinContent(bin) if den.GetBinContent(bin) > 0 else 0
+                errDown = num.GetBinErrorLow(bin)/den.GetBinContent(bin) if den.GetBinContent(bin) > 0 else 0
                 graph.SetPoint(bin, center, val)
                 graph.SetPointError(bin, 0, 0, errDown, errUp)
               h_ratio.Draw("e0"+same)
